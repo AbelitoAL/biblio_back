@@ -1,0 +1,221 @@
+# Schema GraphQL para el sistema de biblioteca
+# Este es adicional a la API REST existente
+
+scalar DateTime
+
+# Tipos principales
+type Libro {
+    id: ID!
+    titulo: String!
+    autor: String!
+    categoria: String!
+    disponible: Boolean!
+    createdAt: String
+    updatedAt: String
+    prestamo: Prestamo
+}
+
+type Miembro {
+    id: ID!
+    nombre: String!
+    apellido: String!
+    direccion: String!
+    telefono: String!
+    fechaRegistro: String
+    createdAt: String
+    updatedAt: String
+    prestamos: [Prestamo!]
+}
+
+type Prestamo {
+    id: ID!
+    fechaPrestamo: String!
+    fechaDevolucionEsperada: String!
+    fechaDevolucionReal: String
+    estado: Boolean!
+    multa: Float
+    libroId: ID
+    miembroId: ID
+    createdAt: String
+    updatedAt: String
+}
+
+# Tipo completo para Usuario (CRUD)
+type UsuarioCompleto {
+    id: ID!
+    email: String!
+    password: String!
+    createdAt: String
+    updatedAt: String
+}
+
+# Tipo para AccesoBiblioteca
+type AccesoBiblioteca {
+    id: ID!
+    fechaEntrada: String!
+    fechaSalida: String
+    metodoAcceso: String!
+    codigoQr: String!
+    estado: Boolean!
+    miembroId: ID
+    miembroNombre: String
+    miembroApellido: String
+    createdAt: String
+    updatedAt: String
+}
+
+# Tipo para respuestas de ingreso/egreso móvil
+type IngresoEgresoResponse {
+    accesoId: ID
+    miembroId: ID
+    miembroNombre: String
+    miembroApellido: String
+    fechaEntrada: String
+    fechaSalida: String
+    tipoAccion: String!
+    mensaje: String!
+    exitoso: Boolean!
+}
+
+# Tipos para autenticación
+type Usuario {
+    id: ID!
+    email: String!
+}
+
+type AuthResponse {
+    token: String!
+    user: Usuario!
+}
+
+# Tipos de entrada para mutations
+input LibroInput {
+    titulo: String!
+    autor: String!
+    categoria: String!
+    disponible: Boolean!
+}
+
+input MiembroInput {
+    nombre: String!
+    apellido: String!
+    direccion: String!
+    telefono: String!
+    fechaRegistro: String
+    email: String!
+    password: String!
+}
+
+input PrestamoInput {
+    fechaPrestamo: String!
+    fechaDevolucionEsperada: String!
+    fechaDevolucionReal: String
+    estado: Boolean!
+    multa: Float
+    libroId: ID!
+    miembroId: ID!
+}
+
+# Input completo para Usuario (CRUD)
+input UsuarioInput {
+    email: String!
+    password: String!
+}
+
+# Input para AccesoBiblioteca
+input AccesoBibliotecaInput {
+    fechaEntrada: String!
+    fechaSalida: String
+    metodoAcceso: String!
+    codigoQr: String!
+    estado: Boolean!
+    miembroId: ID!
+}
+
+# Inputs para autenticación
+input LoginRequest {
+    email: String!
+    password: String!
+}
+
+input RegisterRequest {
+    email: String!
+    password: String!
+}
+
+# Queries (consultas)
+type Query {
+    # Libros
+    libros: [Libro!]!
+    libro(id: ID!): Libro
+    librosPorCategoria(categoria: String!): [Libro!]!
+    librosDisponibles: [Libro!]!
+    
+    # Miembros
+    miembros: [Miembro!]!
+    miembro(id: ID!): Miembro
+    
+    # Prestamos
+    prestamos: [Prestamo!]!
+    prestamo(id: ID!): Prestamo
+    prestamosActivos: [Prestamo!]!
+    prestamosVencidos: [Prestamo!]!
+    prestamosConMulta: [Prestamo!]!
+    
+    # Usuarios (CRUD completo)
+    usuarios: [UsuarioCompleto!]!
+    usuario(id: ID!): UsuarioCompleto
+    usuariosPorEmail(emailParcial: String!): [UsuarioCompleto!]!
+    usuariosRecientes: [UsuarioCompleto!]!
+    totalUsuarios: Int!
+    
+    # AccesoBiblioteca - Queries
+    accesos: [AccesoBiblioteca!]!
+    acceso(id: ID!): AccesoBiblioteca
+    miembroEstaAdentro(miembroId: ID!): Boolean!
+    miembrosAdentro: [AccesoBiblioteca!]!
+    historialMiembro(miembroId: ID!): [AccesoBiblioteca!]!
+    reporteAccesos(fechaInicio: String!, fechaFin: String!): [AccesoBiblioteca!]!
+}
+
+# Mutations (modificaciones)
+type Mutation {
+    # Autenticación
+    registrar(registerRequest: RegisterRequest!): AuthResponse!
+    login(loginRequest: LoginRequest!): AuthResponse!
+    
+    # Libros
+    crearLibro(input: LibroInput!): Libro!
+    actualizarLibro(id: ID!, input: LibroInput!): Libro!
+    eliminarLibro(id: ID!): Boolean!
+    
+    # Miembros
+    crearMiembro(input: MiembroInput!): AuthResponse!
+    crearMiembroSinAuth(input: MiembroInput!): Miembro!
+    actualizarMiembro(id: ID!, input: MiembroInput!): Miembro!
+    eliminarMiembro(id: ID!): Boolean!
+    
+    # Prestamos
+    crearPrestamo(input: PrestamoInput!): Prestamo!
+    actualizarPrestamo(id: ID!, input: PrestamoInput!): Prestamo!
+    eliminarPrestamo(id: ID!): Boolean!
+    marcarComoDevuelto(id: ID!): Prestamo!
+    aplicarMulta(id: ID!, montoMulta: Float!): Prestamo!
+    
+    # Usuarios (CRUD completo)
+    crearUsuario(input: UsuarioInput!): UsuarioCompleto!
+    actualizarUsuario(id: ID!, input: UsuarioInput!): UsuarioCompleto!
+    eliminarUsuario(id: ID!): Boolean!
+    actualizarEmailUsuario(id: ID!, nuevoEmail: String!): UsuarioCompleto!
+    actualizarPasswordUsuario(id: ID!, nuevoPassword: String!): UsuarioCompleto!
+    
+    # AccesoBiblioteca - Mutations CRUD
+    crearAcceso(input: AccesoBibliotecaInput!): AccesoBiblioteca!
+    actualizarAcceso(id: ID!, input: AccesoBibliotecaInput!): AccesoBiblioteca!
+    eliminarAcceso(id: ID!): Boolean!
+    
+    # AccesoBiblioteca - Mutations específicas para móvil
+    generarCodigoQR: String!
+    registrarIngreso(miembroId: ID!, codigoQr: String!): IngresoEgresoResponse!
+    registrarEgreso(miembroId: ID!, codigoQr: String!): IngresoEgresoResponse!
+}
